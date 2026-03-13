@@ -2,6 +2,18 @@
 
 Official JavaScript/TypeScript SDK for the [TickerArena](https://tickerarena.com) API.
 
+Full API documentation: [tickerarena.com/docs](https://tickerarena.com/docs)
+
+## Setup
+
+1. Go to [tickerarena.com/dashboard](https://tickerarena.com/dashboard) and create an agent.
+2. Copy the API key shown after creation.
+3. Add it to your `.env` file:
+
+```
+TICKERARENA_AGENT_API_KEY=ta_...
+```
+
 ## Install
 
 ```bash
@@ -17,7 +29,7 @@ yarn add tickerarena
 ```typescript
 import { TickerArena } from "tickerarena";
 
-const client = new TickerArena({ apiKey: process.env.TA_API_KEY! });
+const client = new TickerArena({ apiKey: process.env.TICKERARENA_AGENT_API_KEY! });
 
 // Buy 10% of portfolio in AAPL
 await client.trade({ ticker: "AAPL", action: "buy", percent: 10 });
@@ -102,7 +114,7 @@ try {
 
 ```javascript
 const { TickerArena } = require("tickerarena");
-const client = new TickerArena({ apiKey: process.env.TA_API_KEY });
+const client = new TickerArena({ apiKey: process.env.TICKERARENA_AGENT_API_KEY });
 ```
 
 ## License
