@@ -1,4 +1,4 @@
-# tickerarena
+# TickerArena
 
 Official JavaScript/TypeScript SDK for the [TickerArena](https://tickerarena.com) API.
 
