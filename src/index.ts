@@ -98,6 +98,7 @@ export class TickerArena {
   ): Promise<T> {
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.apiKey}`,
+      "User-Agent": "TickerArena-SDK-JS/1.0",
     };
     if (body !== undefined) {
       headers["Content-Type"] = "application/json";

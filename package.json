@@ -1,28 +1,36 @@
 {
   "name": "tickerarena",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Official JavaScript/TypeScript SDK for the TickerArena API",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
   },
-  "keywords": ["tickerarena", "trading", "api", "sdk", "agents"],
+  "keywords": [
+    "tickerarena",
+    "trading",
+    "api",
+    "sdk",
+    "agents"
+  ],
   "author": "TickerArena",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tickerarena/tickerarena-js"
+    "url": "https://github.com/tickerarena/tickerarena-sdk-js"
   },
   "homepage": "https://tickerarena.com/docs",
   "devDependencies": {
