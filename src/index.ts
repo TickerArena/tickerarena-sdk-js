@@ -8,6 +8,8 @@ export interface TradeRequest {
   ticker: string;
   action: TradeAction;
   percent: number;
+  /** Target a specific agent by name. If omitted, uses the default agent. */
+  agent?: string;
 }
 
 export interface TradeResponse {
@@ -34,12 +36,12 @@ export interface Agent {
   id: string;
   name: string;
   description: string | null;
-  apiKey: string;
   createdAt: string;
 }
 
 export interface CreateAgentRequest {
-  name: string;
+  /** Agent name. If omitted, a random name is generated. */
+  name?: string;
   description?: string;
 }
 
@@ -71,8 +73,10 @@ export class TickerArenaAPIError extends Error {
 // ─── Client options ───────────────────────────────────────────────────────────
 
 export interface TickerArenaOptions {
-  /** Your agent's API key (starts with `ta_`). Required for trade and portfolio calls. */
+  /** Your universal API key (starts with `ta_`). Works across TickerAPI and TickerArena. */
   apiKey: string;
+  /** Default agent name for trade and portfolio calls. Can be overridden per-call. */
+  agent?: string;
   /** Override the base URL (defaults to https://tickerarena.com). */
   baseUrl?: string;
 }
@@ -81,11 +85,13 @@ export interface TickerArenaOptions {
 
 export class TickerArena {
   private readonly apiKey: string;
+  private readonly agent?: string;
   private readonly baseUrl: string;
 
   constructor(options: TickerArenaOptions) {
     if (!options.apiKey) throw new Error("apiKey is required");
     this.apiKey = options.apiKey;
+    this.agent = options.agent;
     this.baseUrl = (options.baseUrl ?? BASE_URL).replace(/\/$/, "");
   }
 
@@ -124,26 +130,63 @@ export class TickerArena {
   /**
    * Submit a trade for the current season.
    *
-   * @param ticker  Ticker symbol, e.g. `"AAPL"` or `"BTC-USD"`.
-   * @param action  One of `"buy"`, `"sell"`, `"short"`, `"cover"`.
-   * @param percent Percentage of portfolio to allocate (1–100 for buys/shorts,
-   *                1–100 as a fraction of the open position for sells/covers).
+   * @param req.ticker  Ticker symbol, e.g. `"AAPL"` or `"BTC-USD"`.
+   * @param req.action  One of `"buy"`, `"sell"`, `"short"`, `"cover"`.
+   * @param req.percent Percentage of portfolio to allocate (1–100 for buys/shorts,
+   *                    1–100 as a fraction of the open position for sells/covers).
+   * @param req.agent   Target a specific agent by name (overrides client default).
    *
    * @example
    * await client.trade({ ticker: "AAPL", action: "buy", percent: 10 });
    */
   async trade(req: TradeRequest): Promise<TradeResponse> {
-    return this.request<TradeResponse>("POST", "/api/trade", req);
+    const body: Record<string, unknown> = {
+      ticker: req.ticker,
+      action: req.action,
+      percent: req.percent,
+    };
+    const agent = req.agent ?? this.agent;
+    if (agent) body.agent = agent;
+    return this.request<TradeResponse>("POST", "/api/trade", body);
   }
 
   /**
-   * Get your agent's open positions in the current season.
+   * Get open positions in the current season.
+   *
+   * @param agent Target a specific agent by name (overrides client default).
    *
    * @example
    * const { positions, totalAllocated } = await client.portfolio();
    */
-  async portfolio(): Promise<PortfolioResponse> {
-    return this.request<PortfolioResponse>("GET", "/api/portfolio");
+  async portfolio(agent?: string): Promise<PortfolioResponse> {
+    const agentName = agent ?? this.agent;
+    const query = agentName ? `?agent=${encodeURIComponent(agentName)}` : "";
+    return this.request<PortfolioResponse>("GET", `/api/portfolio${query}`);
+  }
+
+  // ── Agent management ───────────────────────────────────────────────────────
+
+  /**
+   * List your agents.
+   *
+   * @example
+   * const agents = await client.agents();
+   */
+  async agents(): Promise<Agent[]> {
+    return this.request<Agent[]>("GET", "/api/agents");
+  }
+
+  /**
+   * Create a new agent.
+   *
+   * @param req.name        Agent name (optional — auto-generated if omitted).
+   * @param req.description Agent description (optional).
+   *
+   * @example
+   * const agent = await client.createAgent({ name: "momentum_alpha" });
+   */
+  async createAgent(req?: CreateAgentRequest): Promise<Agent> {
+    return this.request<Agent>("POST", "/api/agents", req ?? {});
   }
 }
 
