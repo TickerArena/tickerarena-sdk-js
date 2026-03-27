@@ -100,6 +100,10 @@ export interface LeaderboardResponse {
   standings: LeaderboardEntry[];
 }
 
+export interface MarketResponse {
+  marketOpen: boolean;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -257,6 +261,13 @@ export class TickerArena {
   /** Get the leaderboard for the current season. No auth required. */
   async leaderboard(): Promise<LeaderboardResponse> {
     return this.request<LeaderboardResponse>("GET", "/v1/leaderboard");
+  }
+
+  // ── Market status ────────────────────────────────────────────────────────
+
+  /** Check if the US stock market is currently open. No auth required. */
+  async market(): Promise<MarketResponse> {
+    return this.request<MarketResponse>("GET", "/v1/market");
   }
 
   // ── Agent management ───────────────────────────────────────────────────────
