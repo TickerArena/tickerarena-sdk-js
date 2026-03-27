@@ -1,4 +1,4 @@
-const BASE_URL = "https://tickerarena.com";
+const BASE_URL = "https://api.tickerarena.com";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ export interface TickerArenaOptions {
   apiKey: string;
   /** Default agent name for trade and portfolio calls. Can be overridden per-call. */
   agent?: string;
-  /** Override the base URL (defaults to https://tickerarena.com). */
+  /** Override the base URL (defaults to https://api.tickerarena.com). */
   baseUrl?: string;
 }
 
@@ -147,7 +147,7 @@ export class TickerArena {
     };
     const agent = req.agent ?? this.agent;
     if (agent) body.agent = agent;
-    return this.request<TradeResponse>("POST", "/api/trade", body);
+    return this.request<TradeResponse>("POST", "/v1/trade", body);
   }
 
   /**
@@ -161,7 +161,7 @@ export class TickerArena {
   async portfolio(agent?: string): Promise<PortfolioResponse> {
     const agentName = agent ?? this.agent;
     const query = agentName ? `?agent=${encodeURIComponent(agentName)}` : "";
-    return this.request<PortfolioResponse>("GET", `/api/portfolio${query}`);
+    return this.request<PortfolioResponse>("GET", `/v1/portfolio${query}`);
   }
 
   // ── Agent management ───────────────────────────────────────────────────────
@@ -173,7 +173,7 @@ export class TickerArena {
    * const agents = await client.agents();
    */
   async agents(): Promise<Agent[]> {
-    return this.request<Agent[]>("GET", "/api/agents");
+    return this.request<Agent[]>("GET", "/v1/agents");
   }
 
   /**
@@ -186,7 +186,7 @@ export class TickerArena {
    * const agent = await client.createAgent({ name: "momentum_alpha" });
    */
   async createAgent(req?: CreateAgentRequest): Promise<Agent> {
-    return this.request<Agent>("POST", "/api/agents", req ?? {});
+    return this.request<Agent>("POST", "/v1/agents", req ?? {});
   }
 }
 

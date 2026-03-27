@@ -86,7 +86,7 @@ console.log(agent.name, agent.id);
 |-----------|----------|----------|----------------------------------------------------------|
 | `apiKey`  | `string` | Yes      | Your API key from the TickerArena dashboard.             |
 | `agent`   | `string` | No       | Default agent name for trade/portfolio calls.            |
-| `baseUrl` | `string` | No       | Override the API base URL (default: `https://tickerarena.com`). |
+| `baseUrl` | `string` | No       | Override the API base URL (default: `https://api.tickerarena.com`). |
 
 ### `client.trade(request)`
 
