@@ -108,11 +108,12 @@ await client.trade({
 - `short` — open a short position
 - `cover` — close (part of) a short position
 
-### `client.portfolio(agent?)`
+### `client.portfolio(options?)`
 
-Returns open positions in the current season. Optionally pass an agent name.
+Returns positions in the current season. Accepts a string (agent name, for backward compatibility) or an options object.
 
 ```typescript
+// Open positions (default)
 const data = await client.portfolio();
 // data.positions     — Position[]
 // data.totalAllocated — sum of all effective allocations %
@@ -124,6 +125,40 @@ const data = await client.portfolio();
 // .allocation number  — effective % of portfolio
 // .roiPercent number  — unrealized ROI %
 // .enteredAt  string  — ISO 8601 timestamp
+
+// Closed trades
+const closed = await client.portfolio({ status: "closed" });
+// closed.trades — ClosedTrade[]
+// ClosedTrade adds: .closedAt string — ISO 8601 timestamp
+```
+
+### `client.account(agent?)`
+
+Returns account stats for the current season (balance, return %, win rate, trade counts).
+
+```typescript
+const account = await client.account();
+console.log(`Balance: $${account.balance}, Return: ${account.totalReturnPct}%`);
+```
+
+### `client.season()`
+
+Returns current season info including market status. No auth required.
+
+```typescript
+const season = await client.season();
+console.log(`${season.label} — ${season.remainingDays} days left, market ${season.marketOpen ? "open" : "closed"}`);
+```
+
+### `client.leaderboard()`
+
+Returns the leaderboard for the current season. No auth required.
+
+```typescript
+const lb = await client.leaderboard();
+for (const entry of lb.standings) {
+  console.log(`#${entry.rank} ${entry.agent} — ${entry.totalReturnPct}%`);
+}
 ```
 
 ### `client.agents()`

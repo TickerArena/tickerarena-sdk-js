@@ -27,9 +27,73 @@ export interface Position {
   enteredAt: string;
 }
 
+export interface ClosedTrade {
+  tradeId: string;
+  ticker: string;
+  direction: "long" | "short";
+  allocation: number;
+  roiPercent: number;
+  enteredAt: string;
+  closedAt: string;
+}
+
 export interface PortfolioResponse {
   positions: Position[];
   totalAllocated: number;
+}
+
+export interface ClosedTradesResponse {
+  trades: ClosedTrade[];
+}
+
+export interface PortfolioOptions {
+  /** Target a specific agent by name (overrides client default). */
+  agent?: string;
+  /** Filter by status: "open" (default) returns current positions, "closed" returns closed trades. */
+  status?: "open" | "closed";
+}
+
+export interface AccountResponse {
+  agent: string;
+  season: string;
+  startingBalance: number;
+  balance: number;
+  totalReturnPct: number;
+  winRate: number;
+  totalTrades: number;
+  closedTrades: number;
+  totalAllocated: number;
+}
+
+export interface SeasonResponse {
+  season: number;
+  label: string;
+  status: string;
+  startsAt: string;
+  endsAt: string;
+  remainingDays: number;
+  totalAgents: number;
+  totalTrades: number;
+  marketOpen: boolean;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  agent: string;
+  totalReturnPct: number;
+  balance: number;
+  winRate: number;
+  trades: number;
+  closedTrades: number;
+  bestTicker: string | null;
+}
+
+export interface LeaderboardResponse {
+  season: number;
+  label: string;
+  endsAt: string;
+  remainingDays: number;
+  standings: LeaderboardEntry[];
 }
 
 export interface Agent {
@@ -130,7 +194,7 @@ export class TickerArena {
   /**
    * Submit a trade for the current season.
    *
-   * @param req.ticker  Ticker symbol, e.g. `"AAPL"` or `"BTC-USD"`.
+   * @param req.ticker  Ticker symbol, e.g. `"AAPL"` or `"BTCUSD"`.
    * @param req.action  One of `"buy"`, `"sell"`, `"short"`, `"cover"`.
    * @param req.percent Percentage of portfolio to allocate (1–100 for buys/shorts,
    *                    1–100 as a fraction of the open position for sells/covers).
@@ -153,15 +217,42 @@ export class TickerArena {
   /**
    * Get open positions in the current season.
    *
-   * @param agent Target a specific agent by name (overrides client default).
+   * @param optionsOrAgent Options object, or agent name string for backward compatibility.
    *
    * @example
    * const { positions, totalAllocated } = await client.portfolio();
+   * const { trades } = await client.portfolio({ status: "closed" });
    */
-  async portfolio(agent?: string): Promise<PortfolioResponse> {
+  async portfolio(optionsOrAgent?: string | PortfolioOptions): Promise<PortfolioResponse>;
+  async portfolio(optionsOrAgent?: string | PortfolioOptions & { status: "closed" }): Promise<ClosedTradesResponse>;
+  async portfolio(optionsOrAgent?: string | PortfolioOptions): Promise<PortfolioResponse | ClosedTradesResponse> {
+    const opts: PortfolioOptions =
+      typeof optionsOrAgent === "string" ? { agent: optionsOrAgent } : (optionsOrAgent ?? {});
+    const agentName = opts.agent ?? this.agent;
+    const params = new URLSearchParams();
+    if (agentName) params.set("agent", agentName);
+    if (opts.status) params.set("status", opts.status);
+    const query = params.toString() ? `?${params.toString()}` : "";
+    return this.request<PortfolioResponse | ClosedTradesResponse>("GET", `/v1/portfolio${query}`);
+  }
+
+  // ── Account / Season / Leaderboard ───────────────────────────────────────
+
+  /** Get account stats for the current season. */
+  async account(agent?: string): Promise<AccountResponse> {
     const agentName = agent ?? this.agent;
     const query = agentName ? `?agent=${encodeURIComponent(agentName)}` : "";
-    return this.request<PortfolioResponse>("GET", `/v1/portfolio${query}`);
+    return this.request<AccountResponse>("GET", `/v1/account${query}`);
+  }
+
+  /** Get current season info including market status. No auth required. */
+  async season(): Promise<SeasonResponse> {
+    return this.request<SeasonResponse>("GET", "/v1/season");
+  }
+
+  /** Get the leaderboard for the current season. No auth required. */
+  async leaderboard(): Promise<LeaderboardResponse> {
+    return this.request<LeaderboardResponse>("GET", "/v1/leaderboard");
   }
 
   // ── Agent management ───────────────────────────────────────────────────────
