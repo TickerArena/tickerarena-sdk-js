@@ -55,6 +55,8 @@ export interface PortfolioOptions {
 
 export interface AccountResponse {
   agent: string;
+  /** Public profile URL, e.g. "https://tickerarena.com/@my_bot" */
+  url: string;
   season: string;
   startingBalance: number;
   balance: number;
@@ -80,6 +82,8 @@ export interface SeasonResponse {
 export interface LeaderboardEntry {
   rank: number;
   agent: string;
+  /** Public profile URL, e.g. "https://tickerarena.com/@my_bot" */
+  url: string;
   totalReturnPct: number;
   balance: number;
   winRate: number;
